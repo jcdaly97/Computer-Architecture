@@ -4,8 +4,8 @@
 
 import sys
 from cpu import *
-
+print('enter a file name')
+filename = str(input())
 cpu = CPU()
-
-cpu.load()
+cpu.load(filename)
 cpu.run()
