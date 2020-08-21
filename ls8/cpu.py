@@ -12,6 +12,7 @@ class CPU:
         self.pc = 0
         self.address = 0
         self.reg = [0]*8
+        self.fl = [0]*8
 
     def load(self, filename):
         """Load a program into memory."""
@@ -81,12 +82,23 @@ class CPU:
     def ram_write(self, addr, val):
         self.ram[addr] = val
 
+    def compare(self, a, b):
+        if 1 in self.fl:
+            self.fl = [0]*8
+        if a < b:
+            self.fl[5] = 1
+        elif a > b:
+            self.fl[6] = 1
+        elif a == b:
+            self.fl[7] = 1
+
     def run(self):
         """Run the CPU."""
         running = True
         sp = 7
         self.reg[sp] = 255
         while running:
+            
             #self.trace()
             inst = self.ram_read(self.pc)
 
@@ -137,7 +149,28 @@ class CPU:
                 ret_address = self.ram[self.reg[sp]]
                 self.reg[sp] += 1
                 self.pc = ret_address
-            elif inst == 160:
+           
+            elif inst == 160: #add
                 self.reg[self.ram[self.pc+1]] += self.reg[self.ram[self.pc+2]]
                 self.pc += 3
             
+            elif inst == 84: #unconditional jump
+                self.pc = self.reg[self.ram[self.pc+1]]
+            
+            elif inst == 167: #compare
+                a = self.reg[self.ram[self.pc +1]]
+                b = self.reg[self.ram[self.pc +2]]
+                self.compare(a,b)
+                self.pc += 3
+            
+            elif inst == 85: #jeq
+                if self.fl[7] == 1:
+                    self.pc = self.reg[self.ram[self.pc + 1]]
+                else:
+                    self.pc += 2
+
+            elif inst == 86: #jne
+                if self.fl[7] == 0:
+                    self.pc = self.reg[self.ram[self.pc + 1]]
+                else:
+                    self.pc += 2
